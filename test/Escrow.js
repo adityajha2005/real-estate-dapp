@@ -28,8 +28,13 @@ describe('Escrow', () => {
                 lender.address
             )
     
+            //approve property
+            transaction = await realEstate.connect(seller).approve(escrow.address,1)
+            await transaction.wait()
             
-    
+            //list property
+            transaction = await escrow.connect(seller).list(1,buyer.address,tokens(10),tokens(5))
+            await transaction.wait()
             })
 
     describe('Deployment', async () => {
@@ -46,9 +51,40 @@ describe('Escrow', () => {
             expect(result).to.be.equal(inspector.address)
             
         })
-        it('Returns lender', async()=>{
+        it('Returns lender', async()=>{ 
             const result = await escrow.lender()
             expect(result).to.be.equal(lender.address)
         })
+
+        
+    })
+
+    describe('Listing', async () => {
+        it('updates as listed',async()=>{
+            const result = await escrow.isListed(1)
+            expect(result).to.be.equal(true)
+        })
+        it('Update the ownership',async()=>{
+            //transfer nft from seller to this contract
+            expect(await realEstate.ownerOf(1)).to.be.equal(escrow.address)
+
+        })
+
+        it('Returns the buyer',async()=>{
+            const result = await escrow.buyer(1)
+            expect(result).to.be.equal(buyer.address)
+        })
+        
+        it('Returns purchase price',async()=>{
+            const result = await escrow.purchasePrice(1)
+            expect(result).to.be.equal(tokens(10))
+        })
+        
+        it('Returns escrow amount',async()=>{
+            const result = await escrow.escrowamount(1)
+            expect(result).to.be.equal(tokens(5))
+        })
+
+        
     })
 }) 
