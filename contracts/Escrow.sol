@@ -82,11 +82,11 @@ contract Escrow {
         require(approval[_nftID][lender], "Lender has not approved");
         require(address(this).balance>=purchasePrice[_nftID]);
         isListed[_nftID] = false;
+        IERC721(nftAddress).transferFrom(address(this), buyer[_nftID], _nftID);
         (bool success, )=
         payable(seller).call{value:address(this).balance}("");
         require(success);
-        IERC721(nftAddress).transferFrom(address(this), buyer[_nftID], _nftID);
-        seller.transfer(purchasePrice[_nftID]); 
+        // seller.transfer(purchasePrice[_nftID]); 
     }
 
     function CancelSale(uint256 _nftID) public {
