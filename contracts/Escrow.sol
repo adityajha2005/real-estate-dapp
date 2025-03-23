@@ -7,6 +7,12 @@ interface IERC721 {
         address _to,
         uint256 _id
     ) external;
+    
+    function ownerOf(uint256 tokenId) external view returns (address);
+    
+    function approve(address to, uint256 tokenId) external;
+    
+    function getApproved(uint256 tokenId) external view returns (address);
 }
 
 contract Escrow {
@@ -54,10 +60,25 @@ contract Escrow {
     address _buyer, 
     uint256 _purchasePrice, 
     uint256 _escrowAmount) public payable onlySeller{
-        IERC721(nftAddress).transferFrom(msg.sender, address(this), _nftID);
+        // Get the current owner of the NFT
+        address currentOwner = IERC721(nftAddress).ownerOf(_nftID);
+        
+        // Check if this contract is approved to transfer the NFT
+        address approved = IERC721(nftAddress).getApproved(_nftID);
+        require(approved == address(this), "Contract must be approved to transfer NFT");
+        
+        // Check if the seller is the owner
+        require(currentOwner == seller, "Only the owner can list their NFT");
+        
+        // Transfer from the current owner to this contract
+        IERC721(nftAddress).transferFrom(currentOwner, address(this), _nftID);
+        
+        // Verify transfer was successful
+        require(IERC721(nftAddress).ownerOf(_nftID) == address(this), "Transfer failed");
+        
         isListed[_nftID] = true;
         buyer[_nftID] = _buyer;
-        purchasePrice[_nftID] = _purchasePrice ;
+        purchasePrice[_nftID] = _purchasePrice;
         escrowamount[_nftID] = _escrowAmount;
     }
 
